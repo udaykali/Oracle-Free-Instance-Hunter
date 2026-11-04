@@ -9,31 +9,14 @@ jobs:
   hunt:
     runs-on: ubuntu-latest
     steps:
-      - name: Install OCI CLI Binary
-        run: |
-          # Fast downloads the official pre-compiled standalone binary archive
-          curl -L -o oci-cli.zip https://github.com
-          unzip -q oci-cli.zip
-          
-          # Extracts the binary file directly to a custom runner execution path
-          mkdir -p /home/runner/bin
-          mv oci-cli/bin/oci /home/runner/bin/oci
-          chmod +x /home/runner/bin/oci
-          
-          # Sets system parameters to discover the command immediately
-          echo "/home/runner/bin" >> $GITHUB_PATH
-
-      - name: Setup OCI CLI Config
-        run: |
-          mkdir -p ~/.oci
-          echo "[DEFAULT]" > ~/.oci/config
-          echo "user=${{ secrets.OCI_USER_ID }}" >> ~/.oci/config
-          echo "tenancy=${{ secrets.OCI_TENANCY_ID }}" >> ~/.oci/config
-          echo "fingerprint=${{ secrets.OCI_FINGERPRINT }}" >> ~/.oci/config
-          echo "region=${{ secrets.OCI_REGION }}" >> ~/.oci/config
-          echo "key_file=~/.oci/private_key.pem" >> ~/.oci/config
-          echo "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/private_key.pem
-          chmod 600 ~/.oci/private_key.pem
+      - name: Install Official OCI CLI
+        uses: oracle-actions/setup-oci@v1
+        with:
+          user_ocid: ${{ secrets.OCI_USER_ID }}
+          tenancy_ocid: ${{ secrets.OCI_TENANCY_ID }}
+          fingerprint: ${{ secrets.OCI_FINGERPRINT }}
+          region: ${{ secrets.OCI_REGION }}
+          private_key: ${{ secrets.OCI_PRIVATE_KEY }}
 
       - name: Run Instance Hunter Loop
         run: |
@@ -43,7 +26,7 @@ jobs:
           end=$((SECONDS+240))
           while [ $SECONDS -lt $end ]; do
             echo "Checking capacity..."
-            /home/runner/bin/oci compute instance launch \
+            oci compute instance launch \
               --compartment-id "${{ secrets.OCI_TENANCY_ID }}" \
               --availability-domain "tSXA:AP-HYDERABAD-1-AD-1" \
               --shape "VM.Standard.A1.Flex" \
