@@ -9,11 +9,18 @@ jobs:
   hunt:
     runs-on: ubuntu-latest
     steps:
-      - name: Install OCI CLI
+      - name: Install OCI CLI Binary
         run: |
-          # Automatically downloads and installs the Oracle Cloud CLI silently
-          bash -c "$(curl -L https://githubusercontent.com)" -- --accept-all-defaults
-          # Makes sure the system recognizes the 'oci' command immediately
+          # Fast downloads the official pre-compiled standalone binary archive
+          curl -L -o oci-cli.zip https://github.com
+          unzip -q oci-cli.zip
+          
+          # Extracts the binary file directly to a custom runner execution path
+          mkdir -p /home/runner/bin
+          mv oci-cli/bin/oci /home/runner/bin/oci
+          chmod +x /home/runner/bin/oci
+          
+          # Sets system parameters to discover the command immediately
           echo "/home/runner/bin" >> $GITHUB_PATH
 
       - name: Setup OCI CLI Config
@@ -36,7 +43,7 @@ jobs:
           end=$((SECONDS+240))
           while [ $SECONDS -lt $end ]; do
             echo "Checking capacity..."
-            oci compute instance launch \
+            /home/runner/bin/oci compute instance launch \
               --compartment-id "${{ secrets.OCI_TENANCY_ID }}" \
               --availability-domain "tSXA:AP-HYDERABAD-1-AD-1" \
               --shape "VM.Standard.A1.Flex" \
