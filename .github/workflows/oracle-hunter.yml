@@ -39,7 +39,7 @@ jobs:
               --availability-domain "tSXA:AP-HYDERABAD-1-AD-1" \
               --shape "VM.Standard.A1.Flex" \
               --shape-config '{"ocpus":2,"memoryInGBs":12}' \
-              --image-id "auto" \
+              --image-id "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaavshkgl3s65ep5j37b3shm6kewk6k33a5q7aoc5i5d3rqqkex2alq" \
               --subnet-id "${{ secrets.OCI_SUBNET_ID }}" \
               --ssh-authorized-keys-file id_rsa.pub \
               2>&1 | grep -v "Out of host capacity" || echo "Still out of capacity..."
