@@ -9,6 +9,13 @@ jobs:
   hunt:
     runs-on: ubuntu-latest
     steps:
+      - name: Install OCI CLI
+        run: |
+          # Automatically downloads and installs the Oracle Cloud CLI silently
+          bash -c "$(curl -L https://githubusercontent.com)" -- --accept-all-defaults
+          # Makes sure the system recognizes the 'oci' command immediately
+          echo "/home/runner/bin" >> $GITHUB_PATH
+
       - name: Setup OCI CLI Config
         run: |
           mkdir -p ~/.oci
