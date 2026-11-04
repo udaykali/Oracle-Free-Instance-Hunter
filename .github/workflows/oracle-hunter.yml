@@ -1,0 +1,41 @@
+name: Oracle ARM Hunter Loop
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Wakes up every 5 minutes automatically
+  workflow_dispatch:      # Allows you to trigger it manually
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup OCI CLI Config
+        run: |
+          mkdir -p ~/.oci
+          echo "[DEFAULT]" > ~/.oci/config
+          echo "user=${{ secrets.OCI_USER_ID }}" >> ~/.oci/config
+          echo "tenancy=${{ secrets.OCI_TENANCY_ID }}" >> ~/.oci/config
+          echo "fingerprint=${{ secrets.OCI_FINGERPRINT }}" >> ~/.oci/config
+          echo "region=${{ secrets.OCI_REGION }}" >> ~/.oci/config
+          echo "key_file=~/.oci/private_key.pem" >> ~/.oci/config
+          echo "${{ secrets.OCI_PRIVATE_KEY }}" > ~/.oci/private_key.pem
+          chmod 600 ~/.oci/private_key.pem
+
+      - name: Run Instance Hunter Loop
+        run: |
+          echo "${{ secrets.SSH_PUBLIC_KEY }}" > id_rsa.pub
+          
+          # Run API loop for 4 minutes before exiting clean to prevent GitHub timeout
+          end=$((SECONDS+240))
+          while [ $SECONDS -lt $end ]; do
+            echo "Checking capacity..."
+            oci compute instance launch \
+              --compartment-id "${{ secrets.OCI_TENANCY_ID }}" \
+              --availability-domain "tSXA:AP-HYDERABAD-1-AD-1" \
+              --shape "VM.Standard.A1.Flex" \
+              --shape-config '{"ocpus":2,"memoryInGBs":12}' \
+              --image-id "auto" \
+              --ssh-authorized-keys-file id_rsa.pub \
+              2>&1 | grep -v "Out of host capacity" || echo "Still out of capacity..."
+            sleep 30
+          done
