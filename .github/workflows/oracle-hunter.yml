@@ -30,6 +30,17 @@ jobs:
         run: |
           echo "${{ secrets.SSH_PUBLIC_KEY }}" > id_rsa.pub
           
+          # Dynamically search and grab the latest official Ubuntu aarch64 (ARM) Image ID
+          echo "Fetching latest Ubuntu ARM image ID..."
+          LATEST_IMAGE_ID=$(oci compute image list \
+            --compartment-id "${{ secrets.OCI_TENANCY_ID }}" \
+            --operating-system "Canonical Ubuntu" \
+            --shape "VM.Standard.A1.Flex" \
+            --query "data[0].id" \
+            --raw-output)
+            
+          echo "Using Image ID: $LATEST_IMAGE_ID"
+          
           # Run API loop for 4 minutes before exiting clean to prevent GitHub timeout
           end=$((SECONDS+240))
           while [ $SECONDS -lt $end ]; do
@@ -39,7 +50,7 @@ jobs:
               --availability-domain "tSXA:AP-HYDERABAD-1-AD-1" \
               --shape "VM.Standard.A1.Flex" \
               --shape-config '{"ocpus":2,"memoryInGBs":12}' \
-              --image-id "ocid1.image.oc1.ap-hyderabad-1.aaaaaaaavshkgl3s65ep5j37b3shm6kewk6k33a5q7aoc5i5d3rqqkex2alq" \
+              --image-id "$LATEST_IMAGE_ID" \
               --subnet-id "${{ secrets.OCI_SUBNET_ID }}" \
               --ssh-authorized-keys-file id_rsa.pub \
               2>&1 | grep -v "Out of host capacity" || echo "Still out of capacity..."
