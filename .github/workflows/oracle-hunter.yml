@@ -11,10 +11,7 @@ jobs:
     steps:
       - name: Install OCI CLI via Pip
         run: |
-          # Install the official OCI tool using python package manager
           pip install oci-cli
-          
-          # Force the system path to find the installed command
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Setup OCI CLI Config
@@ -43,6 +40,7 @@ jobs:
               --shape "VM.Standard.A1.Flex" \
               --shape-config '{"ocpus":2,"memoryInGBs":12}' \
               --image-id "auto" \
+              --subnet-id "${{ secrets.OCI_SUBNET_ID }}" \
               --ssh-authorized-keys-file id_rsa.pub \
               2>&1 | grep -v "Out of host capacity" || echo "Still out of capacity..."
             sleep 30
