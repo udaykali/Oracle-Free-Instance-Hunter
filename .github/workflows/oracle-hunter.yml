@@ -54,5 +54,5 @@ jobs:
               --subnet-id "${{ secrets.OCI_SUBNET_ID }}" \
               --ssh-authorized-keys-file id_rsa.pub \
               2>&1 | grep -v "Out of host capacity" || echo "Still out of capacity..."
-            sleep 30
+            sleep 60
           done
